@@ -1,0 +1,21 @@
+version: '3'
+services:
+  webapp:
+    build: .
+    ports:
+      - "5000:5000" # Порты, на которые будет проксироваться ваше приложение
+    depends_on:
+      - database
+    environment:
+      - POSTGRES_HOST=database
+      - POSTGRES_DB=postgres # Замените на имя вашей базы данных
+      - POSTGRES_USER=postgres # Замените на имя пользователя базы данных
+      - POSTGRES_PASSWORD=9n3s4V5b6NDpys58rJCS # Замените на пароль пользователя базы данных
+
+  database:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=postgres # Замените на имя вашей базы данных
+      - POSTGRES_USER=postgres # Замените на имя пользователя базы данных
+      - POSTGRES_PASSWORD=n3s4V5b6NDpys58rJCS # Замените на пароль пользователя базы данных
+
