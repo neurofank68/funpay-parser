@@ -1,21 +1,22 @@
-version: '3'
+version: '3.8'
 services:
-  webapp:
+  app:
     build: .
-    ports:
-      - "5000:5000" # Порты, на которые будет проксироваться ваше приложение
     depends_on:
       - database
     environment:
-      - POSTGRES_HOST=database
-      - POSTGRES_DB=postgres # Замените на имя вашей базы данных
-      - POSTGRES_USER=postgres # Замените на имя пользователя базы данных
-      - POSTGRES_PASSWORD=9n3s4V5b6NDpys58rJCS # Замените на пароль пользователя базы данных
+      - DOCKER_CONTAINER=true
+      - HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
 
   database:
     image: postgres:latest
+    ports:
+      - "5432:5432"
     environment:
-      - POSTGRES_DB=postgres # Замените на имя вашей базы данных
-      - POSTGRES_USER=postgres # Замените на имя пользователя базы данных
-      - POSTGRES_PASSWORD=n3s4V5b6NDpys58rJCS # Замените на пароль пользователя базы данных
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
 
