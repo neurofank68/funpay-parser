@@ -8,6 +8,7 @@ from parsel import Selector
 from database import connect_to_database, create_database_table, insert_data
 from logger_info import logger
 
+
 if 'DOCKER_CONTAINER' in os.environ:
     DB_HOST = "database"
 else:
