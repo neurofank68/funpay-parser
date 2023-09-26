@@ -1,12 +1,13 @@
-# Используйте официальный образ Python
-FROM python:3.8
+FROM python:3.11
 
-# Установка зависимостей
+
+COPY requirements.txt /requirements.txt
+
 RUN pip install -r requirements.txt
 
-# Копирование кода приложения в контейнер
-COPY . /app
-WORKDIR /app
 
-# Запуск вашего скрипта при старте контейнера
+WORKDIR /app
+COPY . .
+
+
 CMD ["python", "parser.py"]
