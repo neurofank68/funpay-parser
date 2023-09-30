@@ -1,5 +1,4 @@
 import os
-
 import psycopg2
 
 
@@ -10,7 +9,7 @@ POSTGRES_NAME = os.getenv('POSTGRES_NAME', 'postgres')
 POSTGRES_PORT = os.getenv('POSTGRES_PORT', 5432)
 
 
-def connect_to_database():
+def get_db_connection():
     connection = psycopg2.connect(
         host=POSTGRES_HOST,
         user=POSTGRES_USER,
@@ -35,7 +34,7 @@ def create_database_table(connection):
     connection.commit()
 
 
-def insert_data(connection, url, nickname, registration_timestamp):
+def insert_data(connection, url: str, nickname: str, registration_timestamp: float) -> None:
     with connection.cursor() as cur:
         cur.execute("INSERT INTO funpay_data (url, nickname, registration_timestamp) VALUES (%s, %s, %s)",
                     (url, nickname, registration_timestamp))

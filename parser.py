@@ -1,30 +1,34 @@
 import time
-from typing import Tuple, Optional
 
 import dateparser
 import requests
 from parsel import Selector
+import logging
 
-from database import connect_to_database, create_database_table, insert_data
-from log_config import logger
+from database import get_db_connection, create_database_table, insert_data
 
 
-def parse_user_data(user_id: int, session: requests.Session, base_url: str) -> Tuple[Optional[str], Optional[float]]:
-    url = f"{base_url}/users/{user_id}/"
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+base_url = "https://funpay.com"
+
+
+def parse_user_data(user_id: int, session: requests.Session, url: str) -> (str, float):
+    user_url = f"{url}/users/{user_id}/"
     nickname = None
     registration_timestamp = None
 
     try:
-        response = session.get(url)
+        response = session.get(user_url)
         response.raise_for_status()
 
         sel = Selector(response.text)
         nickname = sel.css('span.mr4::text').get()
         registration_date = sel.css('div.text-nowrap::text').get()
 
-        if nickname:
-            if registration_date:
-                registration_timestamp = dateparser.parse(registration_date).timestamp()
+        if nickname and registration_date:
+            registration_timestamp = dateparser.parse(registration_date).timestamp()
 
     except requests.exceptions.RequestException as e:
         logger.error(f'Ошибка при запросе: {e}')
@@ -35,21 +39,17 @@ def parse_user_data(user_id: int, session: requests.Session, base_url: str) -> T
 
 
 def parse_funpay_data():
-    base_url = "https://funpay.com"
-
-    with requests.Session() as session:
-        connection = connect_to_database()
+    with requests.Session() as session, get_db_connection() as connection:
         create_database_table(connection)
 
         for user_id in range(1, 1001):
             nickname, registration_timestamp = parse_user_data(user_id, session, base_url)
             time.sleep(0.5)
             if nickname is not None:
-                url = f"{base_url}/users/{user_id}/"
-                insert_data(connection, url, nickname, registration_timestamp)
+                user_url = f"{base_url}/users/{user_id}/"
+                insert_data(connection, user_url, nickname, registration_timestamp)
                 logger.info(f'{nickname} успешно спарсен')
 
 
 if __name__ == "__main__":
-    time.sleep(2)
     parse_funpay_data()
