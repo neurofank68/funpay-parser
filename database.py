@@ -9,16 +9,19 @@ POSTGRES_NAME = os.getenv('POSTGRES_NAME', 'postgres')
 POSTGRES_PORT = os.getenv('POSTGRES_PORT', 5432)
 
 
-def get_db_connection() -> connection:
-    conn = psycopg2.connect(
-        host=POSTGRES_HOST,
-        user=POSTGRES_USER,
-        password=POSTGRES_PASSWORD,
-        database=POSTGRES_NAME,
-        port=POSTGRES_PORT
-    )
+class DatabaseConnection:
+    def __enter__(self):
+        self.conn = psycopg2.connect(
+            host=POSTGRES_HOST,
+            user=POSTGRES_USER,
+            password=POSTGRES_PASSWORD,
+            database=POSTGRES_NAME,
+            port=POSTGRES_PORT
+        )
+        return self.conn
 
-    return conn
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.conn.close()
 
 
 def create_database_table(conn: connection) -> None:
@@ -34,11 +37,12 @@ def create_database_table(conn: connection) -> None:
     conn.commit()
 
 
-def insert_data(conn: connection,
-                url: str,
-                nickname: str,
-                registration_timestamp: float
-                ) -> None:
+def insert_data(
+        conn: connection,
+        url: str,
+        nickname: str,
+        registration_timestamp: float,
+) -> None:
     with conn.cursor() as cur:
         cur.execute("INSERT INTO funpay_data (url, nickname, registration_timestamp) VALUES (%s, %s, %s)",
                     (url, nickname, registration_timestamp))

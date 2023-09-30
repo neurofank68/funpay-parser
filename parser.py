@@ -5,17 +5,18 @@ import dateparser
 import requests
 from parsel import Selector
 
-from database import get_db_connection, create_database_table, insert_data
+from database import DatabaseConnection, create_database_table, insert_data
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-base_url = "https://funpay.com"
+BASE_URL = "https://funpay.com"
 
 
-def parse_user_data(session: requests.Session,
-                    user_url: str,
-                    ) -> tuple[str, float]:
+def parse_user_data(
+        session: requests.Session,
+        user_url: str,
+) -> tuple[str | None, float | None]:
     nickname = None
     registration_timestamp = None
 
@@ -23,9 +24,9 @@ def parse_user_data(session: requests.Session,
         response = session.get(user_url)
         response.raise_for_status()
 
-        sel = Selector(response.text)
-        nickname = sel.css('span.mr4::text').get()
-        registration_date = sel.css('div.text-nowrap::text').get()
+        selector = Selector(response.text)
+        nickname = selector.css('span.mr4::text').get()
+        registration_date = selector.css('div.text-nowrap::text').get()
 
         if nickname and registration_date:
             registration_timestamp = dateparser.parse(registration_date).timestamp()
@@ -39,12 +40,12 @@ def parse_user_data(session: requests.Session,
 
 
 def parse_funpay_data() -> None:
-    with requests.Session() as session, get_db_connection() as conn:
+    with requests.Session() as session, DatabaseConnection() as conn:
         create_database_table(conn)
 
         for user_id in range(1, 1001):
-            user_url = f"{base_url}/users/{user_id}/"
-            nickname, registration_timestamp = parse_user_data(session, base_url)
+            user_url = f"{BASE_URL}/users/{user_id}/"
+            nickname, registration_timestamp = parse_user_data(session, BASE_URL)
             time.sleep(0.5)
             if nickname is not None:
                 insert_data(conn,
