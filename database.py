@@ -21,7 +21,7 @@ def get_db_connection():
     return connection
 
 
-def create_database_table(connection):
+def create_database_table(connection) -> None:
     with connection.cursor() as cur:
         cur.execute("""
             CREATE TABLE IF NOT EXISTS funpay_data (
