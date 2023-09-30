@@ -1,6 +1,6 @@
 import os
 import psycopg2
-
+from psycopg2.extensions import connection
 
 POSTGRES_HOST = os.getenv('POSTGRES_HOST', 'localhost')
 POSTGRES_USER = os.getenv('POSTGRES_USER', 'postgres')
@@ -9,8 +9,8 @@ POSTGRES_NAME = os.getenv('POSTGRES_NAME', 'postgres')
 POSTGRES_PORT = os.getenv('POSTGRES_PORT', 5432)
 
 
-def get_db_connection():
-    connection = psycopg2.connect(
+def get_db_connection() -> connection:
+    conn = psycopg2.connect(
         host=POSTGRES_HOST,
         user=POSTGRES_USER,
         password=POSTGRES_PASSWORD,
@@ -18,11 +18,11 @@ def get_db_connection():
         port=POSTGRES_PORT
     )
 
-    return connection
+    return conn
 
 
-def create_database_table(connection) -> None:
-    with connection.cursor() as cur:
+def create_database_table(conn: connection) -> None:
+    with conn.cursor() as cur:
         cur.execute("""
             CREATE TABLE IF NOT EXISTS funpay_data (
                 id serial PRIMARY KEY,
@@ -31,11 +31,15 @@ def create_database_table(connection) -> None:
                 registration_timestamp double precision
             )
     """)
-    connection.commit()
+    conn.commit()
 
 
-def insert_data(connection, url: str, nickname: str, registration_timestamp: float) -> None:
-    with connection.cursor() as cur:
+def insert_data(conn: connection,
+                url: str,
+                nickname: str,
+                registration_timestamp: float
+                ) -> None:
+    with conn.cursor() as cur:
         cur.execute("INSERT INTO funpay_data (url, nickname, registration_timestamp) VALUES (%s, %s, %s)",
                     (url, nickname, registration_timestamp))
-    connection.commit()
+    conn.commit()
